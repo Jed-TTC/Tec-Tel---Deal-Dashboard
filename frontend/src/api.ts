@@ -1,7 +1,9 @@
 import axios from 'axios';
 import { Deal, ActionItem, QueueItem } from './types';
 
-const http = axios.create({ baseURL: '/api' });
+const http = axios.create({
+  baseURL: import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : '/api',
+});
 
 export const api = {
   getDeals: () => http.get<Deal[]>('/deals').then(r => r.data),

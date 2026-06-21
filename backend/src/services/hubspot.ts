@@ -70,31 +70,55 @@ async function fetchStages(): Promise<Record<string, string>> {
   return map;
 }
 
-async function fetchDealContacts(dealId: string): Promise<Contact[]> {
-  try {
-    const res = await axios.get(
-      `${BASE}/crm/v3/objects/deals/${dealId}/associations/contacts`,
-      { headers: headers() }
-    );
-    const contactIds: string[] = res.data.results.map((r: any) => r.id);
-    if (!contactIds.length) return [];
+async function fetchAllDealContacts(dealIds: string[]): Promise<Record<string, Contact[]>> {
+  if (!dealIds.length) return {};
 
-    const batch = await axios.post(
-      `${BASE}/crm/v3/objects/contacts/batch/read`,
-      {
-        inputs: contactIds.map(id => ({ id })),
-        properties: ['email', 'firstname', 'lastname'],
-      },
+  try {
+    // Batch fetch all deal→contact associations in one call
+    const assocRes = await axios.post(
+      `${BASE}/crm/v4/associations/deals/contacts/batch/read`,
+      { inputs: dealIds.map(id => ({ id })) },
       { headers: headers() }
     );
-    return batch.data.results.map((c: any) => ({
-      id: c.id,
-      email: c.properties.email || '',
-      firstName: c.properties.firstname || '',
-      lastName: c.properties.lastname || '',
-    }));
-  } catch {
-    return [];
+
+    // Build dealId → contactIds map
+    const dealContactIds: Record<string, string[]> = {};
+    for (const result of assocRes.data.results || []) {
+      dealContactIds[result.from.id] = (result.to || []).map((t: any) => t.toObjectId?.toString() || t.id);
+    }
+
+    // Collect unique contact IDs
+    const allContactIds = [...new Set(Object.values(dealContactIds).flat())];
+    if (!allContactIds.length) return {};
+
+    // Batch fetch contact details (max 100 per call)
+    const contactMap: Record<string, Contact> = {};
+    for (let i = 0; i < allContactIds.length; i += 100) {
+      const chunk = allContactIds.slice(i, i + 100);
+      const contactRes = await axios.post(
+        `${BASE}/crm/v3/objects/contacts/batch/read`,
+        { inputs: chunk.map(id => ({ id })), properties: ['email', 'firstname', 'lastname'] },
+        { headers: headers() }
+      );
+      for (const c of contactRes.data.results || []) {
+        contactMap[c.id] = {
+          id: c.id,
+          email: c.properties.email || '',
+          firstName: c.properties.firstname || '',
+          lastName: c.properties.lastname || '',
+        };
+      }
+    }
+
+    // Map back to deals
+    const result: Record<string, Contact[]> = {};
+    for (const dealId of dealIds) {
+      result[dealId] = (dealContactIds[dealId] || []).map(cid => contactMap[cid]).filter(Boolean);
+    }
+    return result;
+  } catch (err: any) {
+    console.error('fetchAllDealContacts error:', err.response?.data || err.message);
+    return {};
   }
 }
 
@@ -105,17 +129,7 @@ export async function getDeals(): Promise<Deal[]> {
     fetchStages(),
   ]);
 
-  // Fetch contacts for each deal (batched to avoid rate limits)
-  const contactMap: Record<string, Contact[]> = {};
-  const chunks = [];
-  for (let i = 0; i < rawDeals.length; i += 10) chunks.push(rawDeals.slice(i, i + 10));
-  for (const chunk of chunks) {
-    await Promise.all(
-      chunk.map(async d => {
-        contactMap[d.id] = await fetchDealContacts(d.id);
-      })
-    );
-  }
+  const contactMap = await fetchAllDealContacts(rawDeals.map(d => d.id));
 
   return rawDeals.map(d => {
     const p = d.properties;

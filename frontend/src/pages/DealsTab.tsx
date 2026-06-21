@@ -43,7 +43,7 @@ export function DealsTab() {
   const stages = useMemo(() => [...new Set(deals.map(d => d.stage))].sort(), [deals]);
 
   const sorted = useMemo(() => {
-    let list = [...deals];
+    let list = deals.filter(d => !/(closed|disqualified|dead)/i.test(d.stage));
     if (ownerFilter) list = list.filter(d => d.owner === ownerFilter);
     if (stageFilter) list = list.filter(d => d.stage === stageFilter);
     if (urgencyFilter) list = list.filter(d => d.urgencyLevel === urgencyFilter);
