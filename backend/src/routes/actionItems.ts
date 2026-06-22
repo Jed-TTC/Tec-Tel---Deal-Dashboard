@@ -1,9 +1,9 @@
 import { Router } from 'express';
-import { getDeals } from '../services/hubspot.js';
-import { getAllActionItems, getMeetings } from '../services/fellow.js';
-import { getRecentEmailThreads, isAuthenticated } from '../services/msGraph.js';
-import { extractEmailActionItems } from '../services/anthropic.js';
-import { ActionItem } from '../types.js';
+import { getDeals } from '../services/hubspot';
+import { getAllActionItems, getMeetings } from '../services/fellow';
+import { getRecentEmailThreads, isAuthenticated } from '../services/msGraph';
+import { extractEmailActionItems } from '../services/anthropic';
+import { ActionItem } from '../types';
 
 const router = Router();
 

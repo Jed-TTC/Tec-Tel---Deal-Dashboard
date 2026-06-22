@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getAuthUrl, exchangeCode, isAuthenticated } from '../services/msGraph.js';
+import { getAuthUrl, exchangeCode, isAuthenticated } from '../services/msGraph';
 
 const router = Router();
 

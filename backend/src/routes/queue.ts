@@ -1,9 +1,9 @@
 import { Router } from 'express';
-import { getDeals, postDealNote } from '../services/hubspot.js';
-import { getRecentEmailThreads, isAuthenticated } from '../services/msGraph.js';
-import { getMeetings } from '../services/fellow.js';
-import { buildQueueFromEmails, buildQueueFromMeetings } from '../services/anthropic.js';
-import { QueueItem } from '../types.js';
+import { getDeals, postDealNote } from '../services/hubspot';
+import { getRecentEmailThreads, isAuthenticated } from '../services/msGraph';
+import { getMeetings } from '../services/fellow';
+import { buildQueueFromEmails, buildQueueFromMeetings } from '../services/anthropic';
+import { QueueItem } from '../types';
 
 const router = Router();
 

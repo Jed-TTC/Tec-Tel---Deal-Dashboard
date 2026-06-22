@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getDeals, postDealNote } from '../services/hubspot.js';
+import { getDeals, postDealNote } from '../services/hubspot';
 
 const router = Router();
 

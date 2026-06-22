@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Deal, Contact } from '../types.js';
+import { Deal, Contact } from '../types';
 
 const BASE = 'https://api.hubapi.com';
 

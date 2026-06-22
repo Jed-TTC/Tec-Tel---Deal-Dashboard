@@ -1,7 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { Deal, ActionItem, QueueItem } from '../types.js';
-import { EmailThread } from './msGraph.js';
-import { FellowMeeting } from './fellow.js';
+import { Deal, ActionItem, QueueItem } from '../types';
+import { EmailThread } from './msGraph';
+import { FellowMeeting } from './fellow';
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 

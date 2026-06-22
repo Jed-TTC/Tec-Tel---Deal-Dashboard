@@ -3,10 +3,10 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path';
 
-import dealsRouter from './routes/deals.js';
-import actionItemsRouter from './routes/actionItems.js';
-import queueRouter from './routes/queue.js';
-import authRouter from './routes/auth.js';
+import dealsRouter from './routes/deals';
+import actionItemsRouter from './routes/actionItems';
+import queueRouter from './routes/queue';
+import authRouter from './routes/auth';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
