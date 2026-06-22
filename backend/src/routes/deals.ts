@@ -1,12 +1,38 @@
 import { Router } from 'express';
-import { getDeals, postDealNote } from '../services/hubspot.js';
+import { getDeals, postDealNote, calcUrgency } from '../services/hubspot.js';
+import { synthesizeDealUpdates } from '../services/anthropic.js';
 
 const router = Router();
 
 router.get('/', async (_req, res) => {
   try {
-    const deals = await getDeals();
-    res.json(deals);
+    const { deals, activitiesMap } = await getDeals();
+
+    // Run synthesis only on active deals to keep it fast
+    const activeDeals = deals.filter(d => !/(closed|disqualified|dead)/i.test(d.stage));
+    const aiResults = await synthesizeDealUpdates(activeDeals, activitiesMap);
+
+    const enriched = deals.map(d => {
+      const ai = aiResults[d.id];
+      const dealUpdate = ai?.synthesis ?? null;
+      const suggestedNextStep = ai?.nextStep ?? null;
+
+      const activityDays = d.lastActivityDate
+        ? Math.floor((Date.now() - new Date(d.lastActivityDate).getTime()) / 86_400_000)
+        : 999;
+      const { score, level, breakdown } = calcUrgency(d.value, activityDays, dealUpdate, suggestedNextStep);
+
+      return {
+        ...d,
+        dealUpdate,
+        suggestedNextStep,
+        urgencyScore: score,
+        urgencyLevel: level,
+        urgencyBreakdown: breakdown,
+      };
+    });
+
+    res.json(enriched);
   } catch (err: any) {
     console.error('GET /deals error:', err.response?.data || err.message);
     res.status(500).json({ error: err.message });

@@ -2,8 +2,40 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  body {
-    @apply text-slate-900 antialiased;
-  }
+:root {
+  --green: #49ab81;
+  --green-deep: #285236;
+  --green-tint: #eef6f1;
+  --ink: #1c1c1c;
+  --ink-soft: #3a3a3a;
+  --label: #9a9a9a;
+  --label-soft: #b4b4b4;
+  --hair: #e7e7e7;
+  --hair-strong: #d6d6d6;
+  --paper: #ffffff;
+  --page: #f6f6f4;
+  --amber: #bf8a2c;
+  --amber-tint: #f8f1e3;
+  --red: #bb524c;
+  --red-tint: #f7ece9;
+  --serif: 'Spectral', Georgia, serif;
+  --sans: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, monospace;
+}
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; }
+
+body {
+  background: var(--page);
+  color: var(--ink);
+  font-family: var(--serif);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+select {
+  appearance: none;
+  -webkit-appearance: none;
 }

@@ -1,81 +1,65 @@
-import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, ListChecks, Inbox, AlertCircle, ExternalLink } from 'lucide-react';
-import { Tab } from './types';
+import React, { useState } from 'react';
 import { DealsTab } from './pages/DealsTab';
-import { ActionItemsTab } from './pages/ActionItemsTab';
-import { QueueTab } from './pages/QueueTab';
-import { api } from './api';
+import { PartnerQueueTab } from './pages/PartnerQueueTab';
 
-const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
-  { id: 'deals', label: 'Deals Overview', icon: LayoutDashboard },
-  { id: 'actions', label: 'Action Items', icon: ListChecks },
-  { id: 'queue', label: 'Review Queue', icon: Inbox },
+type Tab = 'deals' | 'partners';
+
+const tabs: { id: Tab; label: string }[] = [
+  { id: 'deals', label: 'Deals' },
+  { id: 'partners', label: 'Partner Updates' },
 ];
 
 export default function App() {
-  const [tab, setTab] = useState<Tab>('deals');
-  const [msAuth, setMsAuth] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    api.getAuthStatus().then(s => setMsAuth(s.microsoft)).catch(() => setMsAuth(false));
-  }, []);
+  const [activeTab, setActiveTab] = useState<Tab>('deals');
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Top nav */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="flex items-center justify-between h-14">
-            <div className="flex items-center gap-3">
-              <div className="h-7 w-7 bg-brand-500 rounded-lg flex items-center justify-center">
-                <LayoutDashboard className="h-4 w-4 text-white" />
-              </div>
-              <span className="font-semibold text-slate-800 text-sm">Deal Dashboard</span>
-            </div>
-
-            {/* Auth status */}
-            {msAuth === false && (
-              <a href="/api/auth/ms"
-                className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors">
-                <AlertCircle className="h-3.5 w-3.5" />
-                Connect Outlook
-                <ExternalLink className="h-3 w-3" />
-              </a>
-            )}
-            {msAuth === true && (
-              <span className="text-xs text-green-600 flex items-center gap-1.5">
-                <span className="h-2 w-2 bg-green-500 rounded-full inline-block" />
-                Outlook connected
-              </span>
-            )}
+    <div style={{ minHeight: '100vh', background: 'var(--page)' }}>
+      <header style={{
+        background: 'var(--paper)',
+        borderBottom: '2px solid var(--green)',
+        position: 'sticky', top: 0, zIndex: 20,
+      }}>
+        {/* Logo row */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 18, padding: '14px 34px 0' }}>
+          <a href="https://tec-tel.com" target="_blank" rel="noopener noreferrer">
+            <img src="/tectel-logo.png" alt="Tec-Tel" style={{ height: 30, width: 'auto', display: 'block' }} />
+          </a>
+          <div style={{ width: 1, height: 24, background: 'var(--hair-strong)' }} />
+          <div style={{
+            fontFamily: 'var(--sans)', fontSize: 12, letterSpacing: '0.2em',
+            textTransform: 'uppercase', fontWeight: 700, color: 'var(--ink)',
+          }}>
+            Hot Deal Dashboard
           </div>
+        </div>
 
-          {/* Tab bar */}
-          <div className="flex gap-1 -mb-px">
-            {TABS.map(t => {
-              const Icon = t.icon;
-              const active = tab === t.id;
-              return (
-                <button key={t.id} onClick={() => setTab(t.id)}
-                  className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-                    active
-                      ? 'border-brand-500 text-brand-600'
-                      : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-                  }`}>
-                  <Icon className="h-4 w-4" />
-                  {t.label}
-                </button>
-              );
-            })}
-          </div>
+        {/* Tab nav */}
+        <div style={{ display: 'flex', padding: '0 26px' }}>
+          {tabs.map(t => (
+            <button
+              key={t.id}
+              onClick={() => setActiveTab(t.id)}
+              style={{
+                fontFamily: 'var(--sans)', fontSize: 11, letterSpacing: '0.15em',
+                textTransform: 'uppercase', fontWeight: 600,
+                color: activeTab === t.id ? 'var(--ink)' : 'var(--label)',
+                background: 'none', border: 'none',
+                borderBottom: activeTab === t.id ? '2px solid var(--green)' : '2px solid transparent',
+                padding: '10px 10px 8px',
+                cursor: 'pointer',
+                marginBottom: -2,
+                transition: 'color 0.15s, border-color 0.15s',
+              }}
+            >
+              {t.label}
+            </button>
+          ))}
         </div>
       </header>
 
-      {/* Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-        {tab === 'deals' && <DealsTab />}
-        {tab === 'actions' && <ActionItemsTab />}
-        {tab === 'queue' && <QueueTab />}
+      <main style={{ maxWidth: 1320, margin: '0 auto', padding: '26px 34px 64px' }}>
+        {activeTab === 'deals' && <DealsTab />}
+        {activeTab === 'partners' && <PartnerQueueTab />}
       </main>
     </div>
   );

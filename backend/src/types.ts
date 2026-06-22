@@ -5,6 +5,8 @@ export interface Deal {
   ownerId: string;
   stage: string;
   stageId: string;
+  pipeline: string;
+  pipelineId: string;
   value: number;
   currency: string;
   lastActivityDate: string | null;
@@ -13,11 +15,23 @@ export interface Deal {
   urgencyScore: number;
   urgencyLevel: 'high' | 'medium' | 'low';
   urgencyBreakdown: {
+    nextStepScore: number;
+    contentScore: number;
     valueScore: number;
-    stagnationScore: number;
     activityScore: number;
   };
   contacts: Contact[];
+  companies: Company[];
+  lastNote: string | null;
+  lastUpdateDate: string | null;
+  dealUpdate: string | null;
+  suggestedNextStep: string | null;
+}
+
+export interface Company {
+  id: string;
+  name: string;
+  domain: string;
 }
 
 export interface Contact {
@@ -27,29 +41,34 @@ export interface Contact {
   lastName: string;
 }
 
-export interface ActionItem {
-  id: string;
+export interface DealActionRow {
   dealId: string;
   dealName: string;
-  source: 'fellow' | 'outlook';
-  description: string;
-  identifiedAt: string;
-  done: boolean;
-  meetingTitle?: string;
-  emailSubject?: string;
+  owner: string;
+  latestActivity: string | null;
+  suggestedNextStep: string | null;
 }
 
-export interface QueueItem {
+export interface PartnerQueueDeal {
   id: string;
-  dealId: string;
-  dealName: string;
-  suggestedNote: string;
-  sourceType: 'email' | 'meeting';
-  sourceTitle: string;
-  sourceDate: string;
-  confidenceReason: string;
-  confidenceLevel: 'high' | 'medium' | 'low';
-  status: 'pending' | 'approved' | 'rejected';
+  name: string;
+  pipeline: string;
+  stage: string;
+  value: number;
+}
+
+export interface PartnerQueueItem {
+  threadId: string;
+  subject: string;
+  partnerCompany: string;
+  partnerContacts: string[];
+  emailCount: number;
+  latestDate: string;
+  synthesis: string;
+  suggestedDeal: PartnerQueueDeal | null;
+  proposedNote: string;
+  confidence: 'high' | 'medium' | 'low';
+  allDeals: PartnerQueueDeal[];
 }
 
 export interface MsTokens {
