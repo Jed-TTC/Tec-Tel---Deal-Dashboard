@@ -65,7 +65,12 @@ Respond with ONLY a valid JSON object (no markdown, no extra text):
       }
     }
   } catch (err: any) {
-    console.warn('synthesizeDealUpdates: AI unavailable, skipping.', err.message);
+    console.error('synthesizeDealUpdates failed:', {
+      message: err.message,
+      status: err.status,
+      code: err.code,
+      error: err.error,
+    });
   }
 
   return result;
