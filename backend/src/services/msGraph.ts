@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { MsTokens } from '../types.js';
+import { MsTokens } from '../types';
 
 // In-memory token store (replace with persistent store in production)
 let tokenStore: MsTokens | null = null;

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getAuthUrl, exchangeCode, isAuthenticated } from '../services/msGraph.js';
+import { getAuthUrl, exchangeCode, isAuthenticated } from '../services/msGraph';
 
 const router = Router();
 
@@ -12,7 +12,7 @@ router.get('/ms/callback', async (req, res) => {
   if (!code) return res.status(400).send('Missing code');
   try {
     await exchangeCode(code as string);
-    res.redirect('http://localhost:3000');
+    res.redirect(process.env.FRONTEND_URL || 'http://localhost:3000');
   } catch (err: any) {
     console.error('MS auth callback error:', err.response?.data || err.message);
     res.status(500).send('Authentication failed');
