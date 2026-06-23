@@ -29,15 +29,19 @@ export async function synthesizeDealUpdates(
 
   if (!toGenerate.length) return result;
 
-  const dealSections = toGenerate.map((d, i) => {
-    const activities = activitiesMap[d.id] || [];
-    const activityText = activities.length
-      ? activities.map(a => `  - ${a}`).join('\n')
-      : '  - No recent communications found';
-    return `Deal ${i + 1}: "${d.name}" | Stage: ${d.stage} | Owner: ${d.owner} | Value: $${d.value.toLocaleString()}\nActivities (newest first):\n${activityText}`;
-  }).join('\n\n');
+  const BATCH_SIZE = 8;
+  for (let batchStart = 0; batchStart < toGenerate.length; batchStart += BATCH_SIZE) {
+    const batch = toGenerate.slice(batchStart, batchStart + BATCH_SIZE);
 
-  const prompt = `You are a sales operations assistant for a B2B sales team. For each deal, you are given a list of recent activities (notes, emails, meetings). Use ONLY the information in those activities to write the following — do not invent or assume anything not stated in the activities.
+    const dealSections = batch.map((d, i) => {
+      const activities = activitiesMap[d.id] || [];
+      const activityText = activities.length
+        ? activities.map(a => `  - ${a}`).join('\n')
+        : '  - No recent communications found';
+      return `Deal ${i + 1}: "${d.name}" | Stage: ${d.stage} | Owner: ${d.owner} | Value: $${d.value.toLocaleString()}\nActivities (newest first):\n${activityText}`;
+    }).join('\n\n');
+
+    const prompt = `You are a sales operations assistant for a B2B sales team. For each deal, you are given a list of recent activities (notes, emails, meetings). Use ONLY the information in those activities to write the following — do not invent or assume anything not stated in the activities.
 
 1. "synthesis": A well-written paragraph (3–5 sentences) summarizing what has happened with this deal based solely on the provided activities. Cover: what communications took place, who was involved, what was discussed or agreed upon, and where the deal currently stands. Write as if briefing a sales manager reviewing their pipeline.
 
@@ -48,29 +52,30 @@ ${dealSections}
 Respond with ONLY a valid JSON object (no markdown, no extra text):
 {"1": {"synthesis": "...", "nextStep": "..."}, "2": {"synthesis": "...", "nextStep": "..."}}`;
 
-  try {
-    const res = await client.messages.create({
-      model: MODEL,
-      max_tokens: 4096,
-      messages: [{ role: 'user', content: prompt }],
-    });
+    try {
+      const res = await client.messages.create({
+        model: MODEL,
+        max_tokens: 8192,
+        messages: [{ role: 'user', content: prompt }],
+      });
 
-    const text = res.content[0].type === 'text' ? res.content[0].text.trim() : '{}';
-    const parsed: Record<string, { synthesis: string; nextStep: string }> = JSON.parse(text);
-    for (const [indexStr, data] of Object.entries(parsed)) {
-      const deal = toGenerate[parseInt(indexStr) - 1];
-      if (deal && data?.synthesis && data?.nextStep) {
-        synthesisCache.set(deal.id, { synthesis: data.synthesis, nextStep: data.nextStep, generatedAt: now });
-        result[deal.id] = { synthesis: data.synthesis, nextStep: data.nextStep };
+      const text = res.content[0].type === 'text' ? res.content[0].text.trim() : '{}';
+      const parsed: Record<string, { synthesis: string; nextStep: string }> = JSON.parse(text);
+      for (const [indexStr, data] of Object.entries(parsed)) {
+        const deal = batch[parseInt(indexStr) - 1];
+        if (deal && data?.synthesis && data?.nextStep) {
+          synthesisCache.set(deal.id, { synthesis: data.synthesis, nextStep: data.nextStep, generatedAt: now });
+          result[deal.id] = { synthesis: data.synthesis, nextStep: data.nextStep };
+        }
       }
+    } catch (err: any) {
+      console.error('synthesizeDealUpdates batch failed:', {
+        message: err.message,
+        status: err.status,
+        code: err.code,
+        error: err.error,
+      });
     }
-  } catch (err: any) {
-    console.error('synthesizeDealUpdates failed:', {
-      message: err.message,
-      status: err.status,
-      code: err.code,
-      error: err.error,
-    });
   }
 
   return result;

@@ -499,12 +499,14 @@ async function fetchRecentCalls(since: number): Promise<Record<string, ActivityC
 }
 
 async function gatherAllActivities(since: number): Promise<Record<string, ActivityCandidate[]>> {
-  const [noteMap, emailMap, meetingMap, callMap] = await Promise.all([
-    fetchRecentNotes(since),
-    fetchRecentEmails(since),
-    fetchRecentMeetings(since),
-    fetchRecentCalls(since),
-  ]);
+  const pause = (ms: number) => new Promise(r => setTimeout(r, ms));
+  const noteMap = await fetchRecentNotes(since);
+  await pause(600);
+  const emailMap = await fetchRecentEmails(since);
+  await pause(600);
+  const meetingMap = await fetchRecentMeetings(since);
+  await pause(600);
+  const callMap = await fetchRecentCalls(since);
 
   const combined: Record<string, ActivityCandidate[]> = {};
   for (const map of [noteMap, emailMap, meetingMap, callMap]) {
