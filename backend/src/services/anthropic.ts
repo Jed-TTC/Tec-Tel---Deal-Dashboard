@@ -59,8 +59,10 @@ Respond with ONLY a valid JSON object (no markdown, no extra text):
         messages: [{ role: 'user', content: prompt }],
       });
 
-      const text = res.content[0].type === 'text' ? res.content[0].text.trim() : '{}';
-      const parsed: Record<string, { synthesis: string; nextStep: string }> = JSON.parse(text);
+      const raw = res.content[0].type === 'text' ? res.content[0].text.trim() : '';
+      const jsonMatch = raw.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) continue;
+      const parsed: Record<string, { synthesis: string; nextStep: string }> = JSON.parse(jsonMatch[0]);
       for (const [indexStr, data] of Object.entries(parsed)) {
         const deal = batch[parseInt(indexStr) - 1];
         if (deal && data?.synthesis && data?.nextStep) {
