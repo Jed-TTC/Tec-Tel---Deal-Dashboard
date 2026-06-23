@@ -6,7 +6,10 @@ const router = Router();
 
 router.get('/', async (_req, res) => {
   try {
-    const { deals, activitiesMap } = await getDeals();
+    const { deals: allDeals, activitiesMap } = await getDeals();
+
+    const EXCLUDED_PIPELINES = /^(Cold Calling Pipeline|SDR Pipeline)$/i;
+    const deals = allDeals.filter(d => !EXCLUDED_PIPELINES.test(d.pipeline));
 
     // Run synthesis only on active deals to keep it fast
     const activeDeals = deals.filter(d => !/(closed|disqualified|dead)/i.test(d.stage));
